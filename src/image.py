@@ -3,7 +3,7 @@ import scipy as sp
 from PIL import Image, ImageOps
 from scipy import ndimage
 
-def display_random_image(root, class_name=None):
+def random_image(root, class_name=None, show=False):
 	"""
 	display a random image in a root directory.
 	class_name is the name of the subdirectory
@@ -13,9 +13,11 @@ def display_random_image(root, class_name=None):
 		class_name = np.random.choice(os.listdir(root))
 	print('Showing image of class <%s>' % class_name)
 	folder = os.path.join(root, class_name)
-	image_file = np.random.choice(os.listdir(folder))
-	image = Image.open(os.path.join(folder,image_file))
-	image.show()
+	image_file = os.path.join(folder,np.random.choice(os.listdir(folder)))
+	if show:
+		image = Image.open(image_file)
+		image.show()
+	return image_file
 
 def scale_and_trim(image_file, width, height, padding=0):
 	"""
@@ -94,8 +96,11 @@ def build_local_descriptor(orientation_responses, position, size, n_spatial_bins
 			convolved_responses[i] = ndimage.convolve(local_orientation_responses[i], tent, mode='constant', cval=0.0)
 		# now the binned response is just  a lookup at the center of the bin
 		binned_response = convolved_responses[:, bin_size/2:size:bin_size, bin_size/2:size:bin_size]
-		# TODO: normalize?
-		return binned_response
+		# normalize
+		sum_squares = np.sum(np.square(binned_response))
+		# take care of zero case:
+		sum_squares = 1 if sum_squares == 0 else sum_squares
+		return np.divide(binned_response, sum_squares)
 
 def build_local_descriptors(orientation_responses, n_samples, patch_size, n_spatial_bins=4):
 	"""
