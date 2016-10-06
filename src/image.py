@@ -45,8 +45,7 @@ def scale_and_trim(image_file, width, height, padding=0):
 
 def compute_gradient(image):
 	"""
-	fast compute gradient and its orientation for each pixel of an image,
-	based on the Sobel operator
+	compute gradient and its orientation for each pixel of an image using the Sobel operator
 	"""
 	# horizontal and vertical derivatives
 	gx = ndimage.sobel(image, 0)
@@ -58,6 +57,19 @@ def compute_gradient(image):
 	# making theta fit in [0,pi]
 	theta[theta < 0] += np.pi
 	return g, theta
+
+def bin_orientation(grad, theta, n_bins=4):
+	"""
+	bin orientation reponse in <n_bins> bins, linearly interpolating between bins
+	"""
+	responses = []
+	bin_size = np.pi/n_bins
+	for i in range (n_bins):
+		bin_center = bin_size*(i+0.5)
+		mask = np.maximum(0, (1-abs(theta-bin_center)/bin_size)) 
+		response = np.multiply(grad,mask)
+		responses.append(response)
+	return responses
 
 def get_descriptors(images):
 	return images
