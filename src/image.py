@@ -62,14 +62,38 @@ def bin_orientation(grad, theta, n_bins=4):
 	"""
 	bin orientation reponse in <n_bins> bins, linearly interpolating between bins
 	"""
-	responses = []
+	responses = np.ndarray(shape=(n_bins, grad.shape[0], grad.shape[1]), dtype=np.float32)	
+	# assumes angles are always in [0,pi]
 	bin_size = np.pi/n_bins
 	for i in range (n_bins):
 		bin_center = bin_size*(i+0.5)
+		# mask for linear interpolation
 		mask = np.maximum(0, (1-abs(theta-bin_center)/bin_size)) 
-		response = np.multiply(grad,mask)
-		responses.append(response)
+		responses[i] = np.multiply(grad,mask)
 	return responses
+
+def build_local_descriptor(orientation_responses, position, size, n_spatial_bins=4):
+	"""
+	build local descriptor at a given position using orientational responses, binning spatial data using linear interpolation
+	"""	
+	try:
+		# relevant parts of the orientational response
+		local_orientation_responses = orientation_responses[:, position[0]-size/2:position[0]+size/2, position[1]-size/2:position[1]+size/2]
+	except IndexError:
+		print('Invalid set of position and size.')
+	else:
+		# create 2d tent for convolution
+		# the tent should have the size of 2 times the size of the bin
+		bin_size = size/n_spatial_bins
+		tent = np.fromfunction(lambda i, j: np.maximum(0, np.minimum((1-abs(i-bin_size)/bin_size),(1-abs(j-bin_size)/bin_size))), (2*bin_size+1, 2*bin_size+1), dtype=np.float32)
+		# TODO: try gaussian?
+		# convolve with 2d tent
+		convolved_responses = np.ndarray(shape=(local_orientation_responses.shape), dtype=np.float32)	
+		for i in range(len(local_orientation_responses)):
+			convolved_responses[i] = ndimage.convolve(local_orientation_responses[i], tent, mode='constant', cval=0.0)
+		# now the binned response is just  a lookup at the center of the bin
+		binned_response = convolved_responses[:, bin_size/2:size:bin_size, bin_size/2:size:bin_size]
+		return binned_response
 
 def get_descriptors(images):
 	return images

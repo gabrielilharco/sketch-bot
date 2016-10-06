@@ -7,6 +7,4 @@ if __name__ == '__main__':
 	image = ndimage.imread('data/airplane/1.png', flatten=True)
 	grad, theta = compute_gradient(np.asarray(image))
 	bin_responses = bin_orientation(grad, theta)
-	for response in bin_responses:
-		response_im = Image.fromarray(1*response)
-		response_im.show()
+	build_local_descriptor(bin_responses, (100,100), 4)
