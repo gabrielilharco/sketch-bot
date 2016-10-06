@@ -78,8 +78,9 @@ def build_local_descriptor(orientation_responses, position, size, n_spatial_bins
 	"""	
 	try:
 		# relevant parts of the orientational response
-		local_orientation_responses = orientation_responses[:, position[0]-size/2:position[0]+size/2, position[1]-size/2:position[1]+size/2]
+		local_orientation_responses = orientation_responses[:, int(position[0]-size/2):int(position[0]+size/2), int(position[1]-size/2):int(position[1]+size/2)]
 	except IndexError:
+		# TODO: refactor to allow this
 		print('Invalid set of position and size.')
 	else:
 		# create 2d tent for convolution
@@ -93,7 +94,21 @@ def build_local_descriptor(orientation_responses, position, size, n_spatial_bins
 			convolved_responses[i] = ndimage.convolve(local_orientation_responses[i], tent, mode='constant', cval=0.0)
 		# now the binned response is just  a lookup at the center of the bin
 		binned_response = convolved_responses[:, bin_size/2:size:bin_size, bin_size/2:size:bin_size]
+		# TODO: normalize?
 		return binned_response
+
+def build_local_descriptors(orientation_responses, n_samples, patch_size, n_spatial_bins=4):
+	"""
+	buld all local descriptors using the orientational responses, at n_samples x n_samples equally spaced positions
+	"""
+	local_descriptors = set()
+	step_size = orientation_responses.shape[1]/n_samples
+	for i in range(0, n_samples):
+		for j in range(0, n_samples):
+			position = ((i+0.5)*step_size, (j+0.5)*step_size)
+			local_descriptor = build_local_descriptor(orientation_responses, position, patch_size, n_spatial_bins)
+			local_descriptors.add(tuple(local_descriptor.flatten()))
+	return local_descriptors
 
 def get_descriptors(images):
 	return images
