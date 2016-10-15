@@ -1,20 +1,17 @@
 import numpy as np
 import scipy as sp
+import os
 from PIL import Image, ImageOps
 from scipy import ndimage
 
-def random_image(root, class_name=None, show=False):
+def random_image(folders, show=False):
 	"""
-	display a random image in a root directory.
-	class_name is the name of the subdirectory
-	if class_name is set to None, then a random folder is chosen
+	display a random image inside a list of directories.
 	"""
-	if class_name is None:
-		class_name = np.random.choice(os.listdir(root))
-	print('Showing image of class <%s>' % class_name)
-	folder = os.path.join(root, class_name)
+	folder = np.random.choice(folders)
 	image_file = os.path.join(folder,np.random.choice(os.listdir(folder)))
 	if show:
+		print('Showing image inside <%s>' % folder)
 		image = Image.open(image_file)
 		image.show()
 	return image_file
@@ -117,15 +114,17 @@ def build_local_descriptors(orientation_responses, n_samples, patch_size=None, n
 			local_descriptors.add(tuple(local_descriptor.flatten()))
 	return local_descriptors
 
-def get_random_descriptors(folder, n_images, n_samples, patch_size=None, n_spatial_bins=4):
+def get_random_descriptors(root, n_images, n_samples=28, patch_size=None, n_spatial_bins=4):
 	"""
 	get a set of all local descriptors found in n randomly selected images in folder
 	"""
+	folders = [os.path.join(root, o) for o in os.listdir(root) if os.path.isdir(os.path.join(root,o))]
 	descriptors = set()
 	for i in range(n_images):
-		image_file = random_image(folder)
-		grad, theta = compute_gradient(np.asarray(image_file))
+		image_file = random_image(folders)
+		image = ndimage.imread(image_file, flatten=True)
+		grad, theta = compute_gradient(np.asarray(image))
 		bin_responses = bin_orientation(grad, theta)
-		local_desc = build_local_descriptors(bin_responses, n_samples, patch_size, n_spatial_bins)
-		descriptors = descriptors & build_local_descriptors
+		local_descriptors = build_local_descriptors(bin_responses, n_samples, patch_size, n_spatial_bins)
+		descriptors = descriptors | local_descriptors
 	return descriptors
