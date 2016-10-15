@@ -102,12 +102,14 @@ def build_local_descriptor(orientation_responses, position, size, n_spatial_bins
 		sum_squares = 1 if sum_squares == 0 else sum_squares
 		return np.divide(binned_response, sum_squares)
 
-def build_local_descriptors(orientation_responses, n_samples, patch_size, n_spatial_bins=4):
+def build_local_descriptors(orientation_responses, n_samples, patch_size=None, n_spatial_bins=4):
 	"""
 	buld all local descriptors using the orientational responses, at n_samples x n_samples equally spaced positions
 	"""
-	local_descriptors = set()
 	step_size = orientation_responses.shape[1]/n_samples
+	if patch_size is None:
+		patch_size = step_size
+	local_descriptors = set()
 	for i in range(0, n_samples):
 		for j in range(0, n_samples):
 			position = ((i+0.5)*step_size, (j+0.5)*step_size)
@@ -115,6 +117,15 @@ def build_local_descriptors(orientation_responses, n_samples, patch_size, n_spat
 			local_descriptors.add(tuple(local_descriptor.flatten()))
 	return local_descriptors
 
-def get_descriptors(images):
-	return images
-
+def get_random_descriptors(folder, n_images, n_samples, patch_size=None, n_spatial_bins=4):
+	"""
+	get a set of all local descriptors found in n randomly selected images in folder
+	"""
+	descriptors = set()
+	for i in range(n_images):
+		image_file = random_image(folder)
+		grad, theta = compute_gradient(np.asarray(image_file))
+		bin_responses = bin_orientation(grad, theta)
+		local_desc = build_local_descriptors(bin_responses, n_samples, patch_size, n_spatial_bins)
+		descriptors = descriptors & build_local_descriptors
+	return descriptors
