@@ -34,7 +34,6 @@ def build_visual_words_histograms(pickled_descriptor_files, centroids, force = F
 					# build histogram using gaussian kernel
 					local_descriptor = np.array(local_descriptors[idx])
 					histogram = np.sum(np.array([gaussian_distance(descriptor, centroids) for descriptor in local_descriptor]), axis=0)
-					print histogram
 					# normalize by the number of samples
 					data[idx, :] = np.divide(histogram,local_descriptor.shape[0])
 				try:
@@ -57,4 +56,7 @@ def gaussian_distance(x1, centroids, sigma=0.1):
 	and returns a vector (m x 1) corresponding to the normalized gaussian distance between x1 and each row of centroids
 	"""
 	q = np.array([gaussian_kernel(x1, centroid) for centroid in centroids])
-	return np.divide(q, np.sqrt(np.sum(q**2)))
+	mod = np.sqrt(np.sum(q**2))
+	if mod == 0:
+		return q
+	return np.divide(q, mod)
