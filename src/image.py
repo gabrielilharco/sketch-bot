@@ -114,7 +114,7 @@ def build_local_descriptors(orientation_responses, n_samples, patch_size=None, n
 			local_descriptors.add(tuple(local_descriptor.flatten()))
 	return local_descriptors
 
-def get_random_descriptors(root, n_images, n_samples=28, patch_size=None, n_spatial_bins=4):
+def get_random_descriptors(root, n_images, n_samples=28, patch_size=None, n_spatial_bins=4, width=128, height=128):
 	"""
 	get a set of all local descriptors found in n randomly selected images in folder
 	"""
@@ -122,9 +122,11 @@ def get_random_descriptors(root, n_images, n_samples=28, patch_size=None, n_spat
 	descriptors = set()
 	for i in range(n_images):
 		image_file = random_image(folders)
-		image = ndimage.imread(image_file, flatten=True)
+		print "Creating descriptors for " + image_file
+		image = scale_and_trim(image_file, width, height)
 		grad, theta = compute_gradient(np.asarray(image))
 		bin_responses = bin_orientation(grad, theta)
 		local_descriptors = build_local_descriptors(bin_responses, n_samples, patch_size, n_spatial_bins)
 		descriptors = descriptors | local_descriptors
 	return descriptors
+
