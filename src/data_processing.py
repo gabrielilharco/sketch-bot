@@ -12,6 +12,7 @@ def maybe_extract(filename, num_classes, force=False):
 	extraction can be forced with the 'force parameter'.
 	returns a list of folders in the extracted file;
 	"""
+	print "Extracting data. This may take a while..."
 	root = os.path.splitext(os.path.splitext(filename)[0])[0]  # remove .zip
 	if force or not os.path.isdir(root):
 		# extract data
@@ -35,9 +36,30 @@ def generate_mirrored_images(folders):
 	""" 
 	for folder in folders:
 		image_files = os.listdir(folder)
+		print "Generating mirrors for class: " + folder
 		for image_file in image_files:
+			# skipping existing mirrors
+			if (os.path.splitext(image_file)[0][-1:] == '_m'):
+				continue
 			flipped_image = horizontal_mirror(folder+'/'+image_file)
 			flipped_image.save(folder+'/'+os.path.splitext(image_file)[0] + "_m.png")
+
+def generate_rotated_images(folders, angles):
+	"""
+	for each image <img> inside the folders and for each angle <ang> in the list of angles (in degrees),
+	generate an image <img_r_ang> that corresponds to <img> rotated by <ang>
+	"""
+	for folder in folders:
+		image_files = os.listdir(folder)
+		print "Generating rotated images for class: " + folder
+		for image_file in image_files:
+			image_file = folder + '/' + image_file
+			for angle in angles:
+				image = Image.open(image_file)
+				rotated_img = image.convert('RGBA').rotate(angle, expand=True)
+				white_bg = Image.new('RGBA', rotated_img.size, (255,)*4)
+				out = Image.composite(rotated_img, white_bg, rotated_img)
+				out.convert(image.mode).save(os.path.splitext(image_file)[0] + "_r_" + str(angle) + ".png")
 
 def load_images(folder, width, height, padding = 0):
 	"""
