@@ -29,6 +29,16 @@ def maybe_extract(filename, num_classes, force=False):
 				num_classes, len(data_folders)))
 	return data_folders
 
+def generate_mirrored_images(folders):
+	"""
+	for each image <img> inside the folders, generate a horizontally flipped image <img_m>
+	""" 
+	for folder in folders:
+		image_files = os.listdir(folder)
+		for image_file in image_files:
+			flipped_image = horizontal_mirror(folder+'/'+image_file)
+			flipped_image.save(folder+'/'+os.path.splitext(image_file)[0] + "_m.png")
+
 def load_images(folder, width, height, padding = 0):
 	"""
 	load data for a single class (inside a folder)
@@ -41,30 +51,3 @@ def load_images(folder, width, height, padding = 0):
 		image_data = scale_and_trim(image_file, width, height, padding)
 		dataset[i, :, :] = image_data
 	return dataset
-
-def maybe_pickle(data_folders, width, height, padding = 0, force = False):
-	"""
-	load all descriptors from the data given a list of folders each representing a class.
-	pickle the data if it is not yet pickled or if force is enabled
-	"""
-	print "Pickling data. This may take a while..."
-	dataset_names = []
-	for folder in data_folders:
-		print "Pickling from " + folder
-		pickled_folder = folder + '.pickle'
-		dataset_names.append(pickled_folder)
-		if force or not os.path.exists(pickled_folder): # pickle
-			# get images
-			images = load_images(folder, width, height, padding)
-			# data
-			data = []
-			for image in images:
-				grad, theta = compute_gradient(np.asarray(image))
-				bin_responses = bin_orientation(grad, theta)
-				data.append(list(build_local_descriptors(bin_responses, n_samples=28)))
-			try:
-				with open (pickled_folder, 'wb') as f:
-					pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
-			except Exception as e:
-				print ('Error while pickling data to', pickled_folder, ':', e)
-	return dataset_names
