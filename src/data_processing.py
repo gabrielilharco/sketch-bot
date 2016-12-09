@@ -61,15 +61,16 @@ def generate_rotated_images(folders, angles):
 				out = Image.composite(rotated_img, white_bg, rotated_img)
 				out.convert(image.mode).save(os.path.splitext(image_file)[0] + "_r_" + str(angle) + ".png")
 
-def load_images(folder, width, height, padding = 0):
+def trim_images(folders, width, height, padding = 0):
 	"""
-	load data for a single class (inside a folder)
+	Scale and trim images to a given width and height, considering the actual drawing and padding
 	"""
-	image_files = os.listdir(folder)
-	dataset = np.ndarray(shape=(len(image_files), width, height), dtype=np.float32)
-	num_images = 0
-	for i in range(len(image_files)):
-		image_file = os.path.join(folder, image_files[i])
-		image_data = scale_and_trim(image_file, width, height, padding)
-		dataset[i, :, :] = image_data
-	return dataset
+	for folder in folders:
+		image_files = os.listdir(folder)
+		print "Generating trimmed images for class: " + folder
+		if not os.path.exists('trim_' + folder):
+			os.makedirs('trim_'+folder)
+		for i, image_file in enumerate(image_files):
+			image_file = folder + '/' + image_file
+			trimmed_image = scale_and_trim(image_file, width, height, padding)
+			trimmed_image.save('trim_'+ folder + '/' + str(i+1) + '.png')

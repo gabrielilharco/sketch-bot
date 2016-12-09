@@ -4,4 +4,4 @@ from scipy import ndimage
 
 if __name__ == '__main__':
 	folders = maybe_extract('data.tar.gz', 250)
-	generate_rotated_images(folders, [-20, -15, -10, -5, 5, 10, 15, 20])
+	trim_images(folders, 48, 48, 2)

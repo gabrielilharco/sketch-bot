@@ -40,7 +40,7 @@ def scale_and_trim(image_file, width, height, padding=0):
 	offset = ((width-t_w)/2, (height-t_h)/2)
 	scaled_image.paste(trimmed_image, offset)
 	# returning
-	return np.asarray(scaled_image)
+	return scaled_image
 
 def horizontal_mirror(image_file):
 	flipped_image = Image.open(image_file).transpose(Image.FLIP_LEFT_RIGHT)
