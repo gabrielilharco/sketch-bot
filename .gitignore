@@ -1,6 +1,7 @@
 *.png
 data/
 trim_data/
+src/lasagne
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

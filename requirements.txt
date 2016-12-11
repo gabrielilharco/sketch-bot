@@ -1,0 +1,3 @@
+Theano==0.8.2
+-e git+https://github.com/Lasagne/Lasagne.git@61b1ad1#egg=Lasagne==0.2.git
+nolearn==0.6.0
