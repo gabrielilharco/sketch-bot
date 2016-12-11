@@ -1,7 +1,9 @@
 from data_processing import *
 from visual_vocabulary import *
 from scipy import ndimage
+import os
 
 if __name__ == '__main__':
-	folders = maybe_extract('data.tar.gz', 250)
-	trim_images(folders, 48, 48, 2)
+	root = 'trim_data'
+	folders = [os.path.join(root, folder) for folder in os.listdir('trim_data')]
+	load_images(folders)
