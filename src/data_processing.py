@@ -75,24 +75,31 @@ def trim_images(folders, width, height, padding = 0):
 			trimmed_image = scale_and_trim(image_file, width, height, padding)
 			trimmed_image.save('trim_'+ folder + '/' + str(i+1) + '.png')
 
-def load_images(folders, width=48, height=48):
+def load_images(folders, width=48, height=48, save=True):
 	"""
 	loads data from a list of folders, returning a np array. 
 	It assumes all images have the same width and height
 	"""
+	folders.sort()
 	print "Loading data. This may take a while..."
 	n_imgs = 0
 	for folder in folders:
 		n_imgs += len(os.listdir(folder)) 
 	print "Found: " + str(n_imgs) + " images."
-	dataset = np.ndarray(shape=(n_imgs, width, height), dtype=np.float32)
+	X = np.ndarray(shape=(n_imgs, width, height), dtype=np.float32)
+	y = np.ndarray(shape=(n_imgs), dtype=np.uint8)
 
 	idx = 0
-	for folder in folders:
+	for cur_class, folder in enumerate(folders):
 		print "Loading class: " + folder
 		image_files = os.listdir(folder)
 		for pos, image_file in enumerate(image_files):
 			image_data = Image.open(folder + '/' + image_file)
-			dataset[idx, :, :] = np.asarray(image_data)
+			X[idx, :, :] = np.asarray(image_data) / 255
+			y[idx] = cur_class
 			idx += 1
-	return dataset
+	if save:
+		print "Saving data..."
+		np.save('images', X)
+		np.save('labels', y)
+	return X, y
