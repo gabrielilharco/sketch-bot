@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 from PIL import Image, ImageOps
 from image import *
+from sklearn.utils import shuffle
 
 def maybe_extract(filename, num_classes, force=False):
 	"""
@@ -75,7 +76,7 @@ def trim_images(folders, width, height, padding = 0):
 			trimmed_image = scale_and_trim(image_file, width, height, padding)
 			trimmed_image.save('trim_'+ folder + '/' + str(i+1) + '.png')
 
-def load_images(folders, width=48, height=48, save=True):
+def load_images(folders, width=28, height=28, save=True, random_state=42):
 	"""
 	loads data from a list of folders, returning a np array. 
 	It assumes all images have the same width and height
@@ -98,6 +99,7 @@ def load_images(folders, width=48, height=48, save=True):
 			X[idx, :, :] = np.asarray(image_data) / 255
 			y[idx] = cur_class
 			idx += 1
+	X, y = shuffle(X, y, random_state=random_state)
 	if save:
 		print "Saving data..."
 		np.save('images', X)
